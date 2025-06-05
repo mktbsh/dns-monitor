@@ -1,0 +1,222 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  GO_VERSION: '1.21'
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Run tests
+        run: go test -v ./...
+
+      - name: Run tests with race detector
+        run: go test -race -v ./...
+
+  build:
+    name: Build and Release
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            platform: linux-amd64
+          - goos: linux
+            goarch: arm64
+            platform: linux-arm64
+          - goos: darwin
+            goarch: amd64
+            platform: darwin-amd64
+          - goos: darwin
+            goarch: arm64
+            platform: darwin-arm64
+          - goos: windows
+            goarch: amd64
+            platform: windows-amd64
+            extension: .exe
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: |
+          binary_name="dns-monitor-${{ steps.version.outputs.VERSION }}-${{ matrix.platform }}${{ matrix.extension }}"
+          go build -ldflags="-X main.Version=${{ steps.version.outputs.VERSION }} -s -w" -o "${binary_name}" .
+          
+          # Create archive
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            zip "${binary_name%.exe}.zip" "${binary_name}"
+            echo "ARCHIVE=${binary_name%.exe}.zip" >> $GITHUB_ENV
+          else
+            tar -czf "${binary_name}.tar.gz" "${binary_name}"
+            echo "ARCHIVE=${binary_name}.tar.gz" >> $GITHUB_ENV
+          fi
+          
+          echo "BINARY=${binary_name}" >> $GITHUB_ENV
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.platform }}
+          path: |
+            ${{ env.BINARY }}
+            ${{ env.ARCHIVE }}
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: Generate checksums
+        run: |
+          cd artifacts
+          find . -name "*.tar.gz" -o -name "*.zip" | while read file; do
+            sha256sum "$file" >> ../checksums.txt
+          done
+          cd ..
+          sort checksums.txt -o checksums.txt
+
+      - name: Generate release notes
+        run: |
+          cat > release_notes.md << 'EOF'
+          # DNS Monitor v${{ steps.version.outputs.VERSION }}
+          
+          ## What's New
+          
+          A command-line tool for monitoring DNS record changes and detecting modifications.
+          
+          ## Features
+          
+          - ✅ Monitor specified domain DNS records at regular intervals
+          - ✅ Detect record changes and output logs/notifications
+          - ✅ Simultaneous monitoring of multiple domains
+          - ✅ Simultaneous queries to multiple DNS servers
+          - ✅ Support for A, AAAA, CNAME, MX, TXT record types
+          - ✅ Color-coded console output
+          - ✅ Continuous and until-change monitoring modes
+          - ✅ Cross-platform support (Linux, macOS, Windows)
+          
+          ## Installation
+          
+          ### Download and Install
+          
+          ```bash
+          # Download and install automatically
+          curl -sSL https://raw.githubusercontent.com/your-username/dns-monitor/main/install.sh | bash
+          
+          # Or install from local build
+          curl -sSL https://raw.githubusercontent.com/your-username/dns-monitor/main/install.sh | bash -s -- --local
+          ```
+          
+          ### Manual Installation
+          
+          1. Download the appropriate binary for your platform from the assets below
+          2. Extract the archive
+          3. Move the binary to your PATH (e.g., `/usr/local/bin`)
+          4. Make it executable: `chmod +x dns-monitor`
+          
+          ## Quick Start
+          
+          ```bash
+          # Basic monitoring
+          dns-monitor example.com
+          
+          # Monitor multiple domains at 30-second intervals
+          dns-monitor -i 30s example.com api.example.com
+          
+          # Monitor CNAME record, exit on change detection
+          dns-monitor -t CNAME --until-change www.example.com
+          
+          # Use specific DNS servers
+          dns-monitor -s 8.8.8.8 -s 1.1.1.1 example.com
+          ```
+          
+          ## Checksums
+          
+          ```
+          $(cat checksums.txt)
+          ```
+          
+          ---
+          
+          **Full Changelog**: https://github.com/your-username/dns-monitor/compare/v${{ steps.version.outputs.VERSION }}
+          EOF
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.VERSION }}
+          name: DNS Monitor v${{ steps.version.outputs.VERSION }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+          files: |
+            artifacts/*/*.tar.gz
+            artifacts/*/*.zip
+            checksums.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
