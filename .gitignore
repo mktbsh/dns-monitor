@@ -1,0 +1,78 @@
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Go
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go build command
+/bin/
+/pkg/
+/src/
+
+# Go workspace file
+go.work
+
+# Dependency directories
+vendor/
+
+# Go module files
+go.mod
+go.sum
+
+# Build output
+*.o
+*.a
+*.so
+
+# Coverage files
+*.out
+*.html
+
+# Delve debugger
+__debug_bin*
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+# Linux
+*~
+
+# temporary files which can be created if a process still has a handle open of a deleted file
+.fuse_hidden*
+
+# KDE directory preferences
+.directory
+
+# Linux trash folder which might appear on any partition or disk
+.Trash-*
+
+# .nfs files are created when an open file is removed but is still being accessed
+.nfs*
+
+# Project specific
+*.log
+*.tmp
+config.local.*
+.env
+.env.local
