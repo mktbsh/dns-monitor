@@ -182,16 +182,13 @@ Follow this iterative development process for each feature:
 ### Commit Guidelines
 - Commit after each successfully tested feature
 - Use Conventional Commit format for commit message titles
-- Include Claude Code as the author and relevant prompt information
 - Keep commits atomic and focused on single features
 - Include relevant tests in the same commit as the feature
+- Use clear, descriptive commit messages without co-author information
 
 #### Commit Message Format
 ```
 <type>(<scope>): <description>
-
-Author: Claude Code
-Prompt: <brief description of the development instruction>
 
 <optional body with detailed explanation>
 ```
@@ -199,9 +196,6 @@ Prompt: <brief description of the development instruction>
 #### Examples
 ```
 feat(dns): add basic DNS monitoring functionality
-
-Author: Claude Code
-Prompt: Implement basic DNS record monitoring with A record support
 
 - Add DNS client for single domain queries
 - Implement continuous monitoring loop
@@ -211,9 +205,6 @@ Prompt: Implement basic DNS record monitoring with A record support
 ```
 test(dns): add unit tests for DNS monitoring
 
-Author: Claude Code
-Prompt: Create comprehensive unit tests for DNS monitoring functionality
-
 - Add tests for DNS query parsing
 - Add tests for change detection logic
 - Add error handling test cases
@@ -221,9 +212,6 @@ Prompt: Create comprehensive unit tests for DNS monitoring functionality
 
 ```
 fix(output): correct IP address sorting logic
-
-Author: Claude Code
-Prompt: Fix bug in multiple IP address comparison
 
 - Sort IP addresses before comparison
 - Update test cases for sorted output
