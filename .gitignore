@@ -29,9 +29,9 @@ go.work
 # Dependency directories
 vendor/
 
-# Go module files
-go.mod
-go.sum
+# Go module files (keep go.mod and go.sum in version control)
+# go.mod
+# go.sum
 
 # Build output
 *.o
@@ -76,3 +76,21 @@ __debug_bin*
 config.local.*
 .env
 .env.local
+
+# Build artifacts
+build/
+dist/
+dns-monitor
+dns-monitor.exe
+dns-monitor-*
+
+# Test directories
+test-install/
+
+# Archives
+*.tar.gz
+*.zip
+*.tar.xz
+
+# Release files
+releases/
