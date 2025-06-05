@@ -5,7 +5,7 @@ set -e
 APP_NAME="dns-monitor"
 VERSION="1.0.0"
 INSTALL_DIR="/usr/local/bin"
-GITHUB_REPO="your-username/dns-monitor"
+GITHUB_REPO="mktbsh/dns-monitor"
 
 detect_platform() {
     local os

@@ -166,10 +166,10 @@ jobs:
           
           ```bash
           # Download and install automatically
-          curl -sSL https://raw.githubusercontent.com/your-username/dns-monitor/main/install.sh | bash
+          curl -sSL https://raw.githubusercontent.com/mktbsh/dns-monitor/main/install.sh | bash
           
           # Or install from local build
-          curl -sSL https://raw.githubusercontent.com/your-username/dns-monitor/main/install.sh | bash -s -- --local
+          curl -sSL https://raw.githubusercontent.com/mktbsh/dns-monitor/main/install.sh | bash -s -- --local
           ```
           
           ### Manual Installation
@@ -203,7 +203,7 @@ jobs:
           
           ---
           
-          **Full Changelog**: https://github.com/your-username/dns-monitor/compare/v${{ steps.version.outputs.VERSION }}
+          **Full Changelog**: https://github.com/mktbsh/dns-monitor/compare/v${{ steps.version.outputs.VERSION }}
           EOF
 
       - name: Create Release
