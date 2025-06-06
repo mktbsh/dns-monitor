@@ -3,7 +3,7 @@
 set -e
 
 APP_NAME="dns-monitor"
-VERSION="1.0.0"
+VERSION="0.1.0"
 INSTALL_DIR="/usr/local/bin"
 GITHUB_REPO="mktbsh/dns-monitor"
 
